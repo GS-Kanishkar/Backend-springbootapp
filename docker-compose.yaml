@@ -1,0 +1,67 @@
+services:
+  frontend:
+      build:
+        context: ./react-app/frontend-app
+        dockerfile: Dockerfile
+      image: frontend-img:a1
+      container_name: frontend
+      ports:
+        - '80:80'
+      depends_on:
+        backend:
+          condition: service_healthy
+      networks:
+        - st-app
+
+  backend:
+      build:
+        context: ./springboot/student-app/student-app
+        dockerfile: Dockerfile
+      image: backend-img:a1
+      container_name: backend
+      ports: 
+        - '8080'
+      networks:
+        - st-app
+
+      environment:
+        SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/mydatabase
+        SPRING_DATASOURCE_USERNAME: user
+        SPRING_DATASOURCE_PASSWORD: root
+      healthcheck:
+        test: ["CMD","wget","--spider","-S","http://backend:8080/health"]
+        start_period: 10s
+        interval: 5s
+        retries: 10
+      depends_on:
+        database:
+          condition: service_healthy
+
+  database:
+      image: mysql:latest
+      container_name: database
+      environment:
+        MYSQL_DATABASE: mydatabase
+        MYSQL_PASSWORD: root
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_USER: user
+      ports:
+        - '3306'
+      volumes:
+        - mysql_data:/var/lib/mysql
+      healthcheck:
+        test: "mysql -uuser -proot -e 'select 1;' "
+        start_period: 30s
+        interval: 5s
+        retries: 20
+      networks:
+        - st-app
+
+networks:
+    st-app:
+      name: st-app
+      driver: bridge
+
+volumes:
+    mysql_data:
+    
