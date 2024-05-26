@@ -1,9 +1,9 @@
 services:
   frontend:
       build:
-        context: ./react-app/frontend-app
+        context: ../Frontend-app
         dockerfile: Dockerfile
-      image: frontend-img:a1
+      image: frontend-img:v1
       container_name: frontend
       ports:
         - '80:80'
@@ -11,18 +11,18 @@ services:
         backend:
           condition: service_healthy
       networks:
-        - st-app
+        - app-network
 
   backend:
       build:
-        context: ./springboot/student-app/student-app
+        context: .
         dockerfile: Dockerfile
-      image: backend-img:a1
+      image: backend-img:v1
       container_name: backend
       ports: 
         - '8080'
       networks:
-        - st-app
+        - app-network
 
       environment:
         SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/mydatabase
@@ -55,11 +55,11 @@ services:
         interval: 5s
         retries: 20
       networks:
-        - st-app
+        - app-network
 
 networks:
-    st-app:
-      name: st-app
+    app-network:
+      name: app-network
       driver: bridge
 
 volumes:
